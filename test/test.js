@@ -254,55 +254,55 @@ describe("Matrix", function(){
 });
 
 
-describe("_QMDD", function(){
+describe("_QMDD", function() {
 
 
-    describe("#_determineSequence", function(){
+    describe("#_determineSequence", function () {
 
-        it("should compute sequence for 4 x 4 case 1", function(){
+        it("should compute sequence for 4 x 4 case 1", function () {
             var Q = new qmdd._QMDD(4); // 2^2 x 2^2
-            var S = Q._determineSequence(1,1);
+            var S = Q._determineSequence(1, 1);
             assert.equal(S.length, 2);
             assert.equal(S[0], 0);
             assert.equal(S[1], 3);
         });
 
-        it("should compute sequence for 4 x 4 case 2", function(){
+        it("should compute sequence for 4 x 4 case 2", function () {
             var Q = new qmdd._QMDD(4);
-            var S = Q._determineSequence(3,3);
+            var S = Q._determineSequence(3, 3);
             assert.equal(S.length, 2);
             assert.equal(S[0], 3);
             assert.equal(S[1], 3);
         });
 
-        it("should compute sequence for 4 x 4 case 3", function(){
+        it("should compute sequence for 4 x 4 case 3", function () {
             var Q = new qmdd._QMDD(4);
-            var S = Q._determineSequence(3,1);
+            var S = Q._determineSequence(3, 1);
             assert.equal(S.length, 2);
             assert.equal(S[0], 2);
             assert.equal(S[1], 3);
         });
 
-        it("should compute sequence for 4 x 4 case 4", function(){
+        it("should compute sequence for 4 x 4 case 4", function () {
             var Q = new qmdd._QMDD(4);
-            var S = Q._determineSequence(0,0);
+            var S = Q._determineSequence(0, 0);
             assert.equal(S.length, 2);
             assert.equal(S[0], 0);
             assert.equal(S[1], 0);
         });
 
-        it("should handle a 8 x 8 case 1", function(){
+        it("should handle a 8 x 8 case 1", function () {
             var Q = new qmdd._QMDD(8);
-            var S = Q._determineSequence(0,0);
+            var S = Q._determineSequence(0, 0);
             assert.equal(S.length, 3);
             assert.equal(S[0], 0);
             assert.equal(S[1], 0);
             assert.equal(S[2], 0);
         });
 
-        it("should handle a 8 x 8 case 1", function(){
+        it("should handle a 8 x 8 case 1", function () {
             var Q = new qmdd._QMDD(8);
-            var S = Q._determineSequence(4,3);
+            var S = Q._determineSequence(4, 3);
             assert.equal(S.length, 3);
             assert.equal(S[0], 2);
             assert.equal(S[1], 1);
@@ -310,90 +310,186 @@ describe("_QMDD", function(){
         });
 
 
-        it("should return null if row index is too small", function(){
+        it("should return null if row index is too small", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(-1, 1);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
 
-        it("should return null if row index is too large", function(){
+        it("should return null if row index is too large", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(4, 1);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
-        it("should return null if column index is too small", function(){
+        it("should return null if column index is too small", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(1, -1);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
 
-        it("should return null if column index is too large", function(){
+        it("should return null if column index is too large", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(1, 4);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
 
-        it("should return null if row index is null", function(){
+        it("should return null if row index is null", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(null, 3);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
-        it("should return null if column index is null", function(){
+        it("should return null if column index is null", function () {
             var Q = new qmdd._QMDD(4);
             var s = Q._determineSequence(1, null);
-            assert.equal(s,null);
+            assert.equal(s, null);
         });
     });
 
-    describe("#set", function(){
+    describe("#set", function () {
 
         var Q = null;
 
-        beforeEach(function(){
+        beforeEach(function () {
             Q = new qmdd._QMDD(4);
         });
 
-        afterEach(function(){
+        afterEach(function () {
             Q = null;
         });
 
-        it("should set a value", function(){
-            Q.set(2,2,1);
-            var v = Q.get(2,2);
+        it("should set a value", function () {
+            Q.set(2, 2, 1);
+            var v = Q.get(2, 2);
             assert.equal(v, 1);
         });
 
-        it("should set multiple values", function(){
-            Q.set(2,2,1);
-            Q.set(2,2,0.5);
-            Q.set(2,2,0.25);
-            var v = Q.get(2,2);
+        it("should set multiple values", function () {
+            Q.set(2, 2, 1);
+            Q.set(2, 2, 0.5);
+            Q.set(2, 2, 0.25);
+            var v = Q.get(2, 2);
             assert.equal(v, 0.25);
         });
 
-        it("should fail on r to small", function(){
+        it("should fail on r to small", function () {
             assert.equal(Q.set(-1, 2, 1), null);
         });
-        it("should fail on r to large", function(){
+        it("should fail on r to large", function () {
             assert.equal(Q.set(4, 2, 1), null);
         });
-        it("should fail on c to small", function(){
+        it("should fail on c to small", function () {
             assert.equal(Q.set(1, -1, 1), null);
         });
-        it("should fail on c to large", function(){
+        it("should fail on c to large", function () {
             assert.equal(Q.set(1, 4, 1), null);
         });
-        it("should fail on c NaN", function(){
+        it("should fail on c NaN", function () {
             assert.equal(Q.set(1, 2, "foo"), null);
         });
-        it("should fail on r NaN", function(){
+        it("should fail on r NaN", function () {
             assert.equal(Q.set("foo", 2, 1), null);
         });
-        it("should fail on c NaN", function(){
+        it("should fail on c NaN", function () {
             assert.equal(Q.set(1, "foo", 1), null);
         });
 
     });
 
+});
+
+describe("Matrix", function(){
+
+    describe("#add", function(){
+
+        var M1, M2, M3;
+
+        beforeEach(function(){
+            M1 = new qmdd.Matrix(2);
+            M2 = new qmdd.Matrix(2);
+        });
+
+        afterEach(function(){
+            M1 = null;
+            M2 = null;
+            M3 = null;
+        });
+
+        it("should add should add single non-zero elements together", function(){
+            M1.set(0,0,1);
+            M2.set(0,0,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[2,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should result in the same matrix if [0] is added", function(){
+            M1.set(0,0,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[1,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should result add non-overlapping matrices but in same quadrant", function(){
+            M1.set(0,0,1);
+            M2.set(1,1,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[1,0,0,0],[0,1,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should result add non-overlapping matrices but in different quadrants quadrant", function(){
+            M1.set(0,0,1);
+            M2.set(3,3,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[1,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,1]]);
+        });
+
+        it("should add non-unit values", function(){
+            M1.set(0,0,5);
+            M1.set(1,1,5);
+            M2.set(1,1,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[5,0,0,0],[0,6,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should be able to chain adds together", function(){
+
+            M1.set(0,0,1);
+            M2.set(0,0,1);
+            M3 = new qmdd.Matrix(2);
+            M3.set(0,0,1);
+            var M4 = M1.add(M2).add(M3);
+            assert.deepEqual(M4.asArray(), [[3,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+    });
+
+    describe("#copy", function(){
+
+        var M1, M2;
+
+        beforeEach(function(){
+            M1 = new qmdd.Matrix(2);
+        });
+
+        afterEach(function(){
+            M1 = null;
+            M2 = null;
+        });
+
+        it("should do a normal copy", function(){
+            M1.set(0,0,1);
+            M2 = M1.copy();
+            assert.deepEqual(M2.asArray(), [[1,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should copy a total zero matrix", function(){
+            M2 = M1.copy();
+            assert.deepEqual(M2.asArray(), [[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
+        it("should copy non-unity values", function(){
+            M1.set(0,0,10);
+            M2 = M1.copy();
+            assert.deepEqual(M2.asArray(), [[10,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+    });
 
 });

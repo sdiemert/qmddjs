@@ -4,19 +4,24 @@
 
 var Matrix = require("./qmdd").Matrix;
 
+var M1 = new Matrix(2);
+var M2 = new Matrix(2);
 
-var M = new Matrix(2);
+M1.set(0,0,1);
+M1.set(1,1,1);
+M1.set(2,2,1);
+M1.set(3,3,1);
+console.log(M1.asPrettyString());
 
-M.set(0,0,1);
-M.set(1,1,0.75);
-M.set(2,2,0.50);
-M.set(3,3,0.25);
+/*
+M2.set(0,0,1);
+M2.set(1,1,1);
+M2.set(2,2,1);
+M2.set(3,3,1);
+*/
+console.log(M2.asPrettyString());
 
-console.log("get(0,0)", M.get(0,0));
-console.log("get(1,1)", M.get(1,1));
-console.log("get(2,2)", M.get(2,2));
-console.log("get(3,3)", M.get(3,3));
 
-console.log("node count:", M._Q._G.nodes.length);
+var M3 = M1.add(M2);
 
-console.log(M.asPrettyString());
+console.log(M3.asPrettyString());

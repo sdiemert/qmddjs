@@ -102,6 +102,8 @@ _Graph.prototype.getAdjacent = function(n1, e){
     return [this.nodes[n1].A[e].id, this.nodes[n1].W[e]];
 };
 
+
+
 /**
  * Makes a QMDD.
  * @param m {number} the size of the matrix the QMDD is representing, must be power of 2.
@@ -250,18 +252,143 @@ _QMDD.prototype.set = function(r,c,x){
     this._set(x,S,[],this._root);
 };
 
+/**
+ * Get the value at matrix[r][c].
+ * @param r {number} the row to look up (index from 0)
+ * @param c {number} the column to look up (index from 0)
+ */
 _QMDD.prototype.get = function(r,c){
     var S = this._determineSequence(r,c);
     return this._get(S, [], this._root);
 };
 
 /**
+ * Multiples this QMDD matrix with the parameter matrix.
+ * Requires that this QMDD have the same size as Q1.
+ *
+ * @param Q1 {_QMDD}
+ *
+ * @return {_QMDD} A new _QMDD object that is the product.
+ */
+_QMDD.prototype.multiply = function(Q1){
+
+    // Start with edges e0 (this), e1 (Q1)
+    // If e1 -> Q1.terminal swap
+
+};
+
+/**
+ *
+ * @param e {number}
+ * @param q0 {_Node}
+ * @param Q0 {_QMDD}
+ * @param q1 {_Node}
+ * @param Q1 {_QMDD}
+ * @param q2 {_Node}
+ * @param Q2 {_QMDD}
+ * @private
+ */
+_QMDD.prototype._add = function(e, q0, Q0, q1, Q1, q2, Q2){
+
+    var qp0, qp1, qp2;
+
+    if(e === null){
+        qp0 = q0;
+        qp1 = q1;
+        qp2 = q2;
+    }else{
+        qp0 = q0.A[e];
+        qp1 = q1.A[e];
+        qp2 = null;
+    }
+
+    if(qp0.id === Q0._term && qp1.id === Q1._term){
+        q2.W[e] = q0.W[e] + q1.W[e];
+    }else{
+
+        if(qp2 === null) {
+            var qp2_id = Q2._G.newNode(); // id of new node
+            qp2        = Q2._G.nodes[qp2_id]; // reference to _Node object
+
+            //initalize the new node to all zeros
+            Q2._G.addEdge(qp2_id, Q2._term, 0, 0);
+            Q2._G.addEdge(qp2_id, Q2._term, 1, 0);
+            Q2._G.addEdge(qp2_id, Q2._term, 2, 0);
+            Q2._G.addEdge(qp2_id, Q2._term, 3, 0);
+
+            // hook up the new node to its parent.
+            Q2._G.addEdge(q2.id, qp2_id, e, 1);
+        }
+
+        for(var i = 0; i < 4; i++){
+
+            if(qp0.W[i] === 0 && qp1.W[i] === 0){
+                continue;
+            }else if(qp0.W[i] !== 0 && qp1.W[i] === 0){
+                // copy the sub-QMDD starting at qp0 as root.
+                Q0.copy(Q2, qp2, qp0, i);
+            }else if(qp0.W[i] === 0 && qp1.W[i] !== 0){
+                // copy the sub-QMDD starting at qp1 as root.
+                Q1.copy(Q2, qp2, qp1, i);
+            }else{
+                Q2._G.addEdge(qp2_id, Q2._G._term, i, 1);
+                this._add(i, qp0, Q0, qp1, Q1, qp2, Q2);
+            }
+        }
+    }
+};
+
+_QMDD.prototype.copy = function(Q, qt, qs, e){
+
+    // copy everything in this QMDD to Q starting at qs in this and qt in Q
+    // assume that qt(e) is pointing at terminal with weight 0.
+
+    // if qs on edge e is pointing at the terminal.
+    if(qs.A[e].id === this._term){
+        // assign the weight to qt on edge e
+        qt.W[e] = qs.W[e];
+        qt.A[e] = Q._G.nodes[Q._term]; // assign terminal, just in case.
+    }else{
+        // qs on edge e is not pointing at a terminal node.
+        // create a new node and join it to qt on edge e with
+        // with weight from qs[e]
+        // iterate over each edge of the node pointed to by qs[e]
+        //  recurse for each with qs = v(qs[e]) and new node.
+
+        var nn_id = Q._G.newNode();
+        var nn = Q._G.nodes[nn_id];
+
+        Q._G.addEdge(qt.id, nn_id, e, qs.W[e]);
+
+        for(var i = 0; i < 4; i++){
+            this.copy(Q, nn, qs.A[e], i);
+        }
+    }
+};
+
+/**
+ * Adds this QMDD matrix with the parameter matrix.
+ * Requires that this QMDD have the same size as Q1.
+ *
+ * @param Q1 {_QMDD}
+ * @param Q2 {_QMDD}
+ *
+ * @return {_QMDD}
+ */
+_QMDD.prototype.add = function(Q1, Q2){
+
+    this._add(null, this._G.nodes[this._root], this, Q1._G.nodes[Q1._root], Q1, Q2._G.nodes[Q2._root], Q2);
+    return Q2;
+};
+
+/**
  * Makes a new matrix that is 2^m x 2^m in size.
- * Initalizes everything to zeros.
+ * Initializes everything to zeros.
  * @param m {number} m > 0
  * @constructor
  */
 function Matrix(m){
+    this._size = m;
     this._Q = new _QMDD(Math.pow(2, m));
 }
 
@@ -339,10 +466,38 @@ Matrix.prototype.asPrettyString = function(p){
         }
         R += "\n";
     }
-
     return R;
+};
 
+/**
+ * Adds this matrix to the provided matrix, returns a new
+ * Matrix object containing the result.
+ * @param M1 {Matrix} matrix to add to this matrix, must be the same size.
+ * @returns {Matrix} a new matrix containing the sum.
+ */
+Matrix.prototype.add = function(M1){
 
+    if(M1._size !== this._size) return null;
+
+    var M2 = new Matrix(this._size);
+    this._Q.add(M1._Q, M2._Q);
+    return M2;
+};
+
+Matrix.prototype.copy = function(){
+
+    // returns a copy of this matrix
+    // as a new Matrix object.
+
+    var M = new Matrix(this._size);
+
+    // copy each child of the root.
+    this._Q.copy(M._Q, M._Q._G.nodes[M._Q._root], this._Q._G.nodes[this._Q._root], 0);
+    this._Q.copy(M._Q, M._Q._G.nodes[M._Q._root], this._Q._G.nodes[this._Q._root], 1);
+    this._Q.copy(M._Q, M._Q._G.nodes[M._Q._root], this._Q._G.nodes[this._Q._root], 2);
+    this._Q.copy(M._Q, M._Q._G.nodes[M._Q._root], this._Q._G.nodes[this._Q._root], 3);
+
+    return M;
 };
 
 module.exports._Graph = _Graph;

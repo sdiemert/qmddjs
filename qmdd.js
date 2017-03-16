@@ -119,6 +119,37 @@ function _QMDD(m){
 
 _QMDD.prototype._determineSequence = function(r,c){
 
+    // Determines the sequence edges to take to achieve
+    // a specific matrix index (row, column)
+
+    var S = [];
+
+    // this._size is a power of 2
+    // we need to do log_2(size) iterations
+
+    const iters = Math.log2(this._size);
+
+    console.log(iters);
+
+    var q = null;
+
+    for(var i = 0; i < iters; i++){
+
+
+        q = 2*(r >= Math.pow(2, iters - i - 1)) + (c >= Math.pow(2, iters - i - 1));
+        S.push(q);
+
+        if(q === 2 || q === 3){
+            r = r - Math.pow(2, iters - i - 1);
+        }
+        if(q === 1 || q === 3){
+            c = c - Math.pow(2, iters - i - 1);
+        }
+    }
+
+
+    return S;
+
 };
 
 /**

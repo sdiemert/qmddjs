@@ -252,3 +252,64 @@ describe("Matrix", function(){
         });
     });
 });
+
+
+describe("_QMDD", function(){
+
+
+    describe("#_determineSequence", function(){
+
+        it("should compute sequence for 4 x 4 case 1", function(){
+            var Q = new qmdd._QMDD(4); // 2^2 x 2^2
+            var S = Q._determineSequence(1,1);
+            assert.equal(S.length, 2);
+            assert.equal(S[0], 0);
+            assert.equal(S[1], 3);
+        });
+
+        it("should compute sequence for 4 x 4 case 2", function(){
+            var Q = new qmdd._QMDD(4);
+            var S = Q._determineSequence(3,3);
+            assert.equal(S.length, 2);
+            assert.equal(S[0], 3);
+            assert.equal(S[1], 3);
+        });
+
+        it("should compute sequence for 4 x 4 case 3", function(){
+            var Q = new qmdd._QMDD(4);
+            var S = Q._determineSequence(3,1);
+            assert.equal(S.length, 2);
+            assert.equal(S[0], 2);
+            assert.equal(S[1], 3);
+        });
+
+        it("should compute sequence for 4 x 4 case 4", function(){
+            var Q = new qmdd._QMDD(4);
+            var S = Q._determineSequence(0,0);
+            assert.equal(S.length, 2);
+            assert.equal(S[0], 0);
+            assert.equal(S[1], 0);
+        });
+
+        it("should handle a 8 x 8 case 1", function(){
+            var Q = new qmdd._QMDD(8);
+            var S = Q._determineSequence(0,0);
+            assert.equal(S.length, 3);
+            assert.equal(S[0], 0);
+            assert.equal(S[1], 0);
+            assert.equal(S[2], 0);
+        });
+
+        it("should handle a 8 x 8 case 1", function(){
+            var Q = new qmdd._QMDD(8);
+            var S = Q._determineSequence(4,3);
+            assert.equal(S.length, 3);
+            assert.equal(S[0], 2);
+            assert.equal(S[1], 1);
+            assert.equal(S[2], 1);
+        })
+
+
+    });
+
+});

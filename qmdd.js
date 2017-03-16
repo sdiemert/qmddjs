@@ -117,7 +117,23 @@ function _QMDD(m){
 
 }
 
+/**
+ * Determines the sequence of edges to traverse (0,1,2,3)
+ * to reach a particular index in the matrix M[r][c] (row x col)
+ * @param r {number} the row index (from 0)
+ * @param c {number} the column index (from 0)
+ * @returns {Array} the sequnce of edges to traverse
+ * @private
+ */
 _QMDD.prototype._determineSequence = function(r,c){
+
+    if(r == null || r === undefined || c === null || c === undefined){
+        return null;
+    }else if(r >= this._size || r < 0){
+        return null;
+    }else if(c >= this._size || c < 0){
+        return null;
+    }
 
     // Determines the sequence edges to take to achieve
     // a specific matrix index (row, column)
@@ -134,22 +150,23 @@ _QMDD.prototype._determineSequence = function(r,c){
     var q = null;
 
     for(var i = 0; i < iters; i++){
-
-
+        // Compute the quadrant (0,1,2,3)
         q = 2*(r >= Math.pow(2, iters - i - 1)) + (c >= Math.pow(2, iters - i - 1));
-        S.push(q);
 
+        // Adjust the row and column numbers based on quadrant
+        //  we are looking in in the next iteration
         if(q === 2 || q === 3){
             r = r - Math.pow(2, iters - i - 1);
         }
         if(q === 1 || q === 3){
             c = c - Math.pow(2, iters - i - 1);
         }
+
+        // store as a member of the sequence
+        S.push(q);
     }
 
-
     return S;
-
 };
 
 /**

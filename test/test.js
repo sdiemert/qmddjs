@@ -307,9 +307,42 @@ describe("_QMDD", function(){
             assert.equal(S[0], 2);
             assert.equal(S[1], 1);
             assert.equal(S[2], 1);
-        })
+        });
 
 
+        it("should return null if row index is too small", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(-1, 1);
+            assert.equal(s,null);
+        });
+
+        it("should return null if row index is too large", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(4, 1);
+            assert.equal(s,null);
+        });
+        it("should return null if column index is too small", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(1, -1);
+            assert.equal(s,null);
+        });
+
+        it("should return null if column index is too large", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(1, 4);
+            assert.equal(s,null);
+        });
+
+        it("should return null if row index is null", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(null, 3);
+            assert.equal(s,null);
+        });
+        it("should return null if column index is null", function(){
+            var Q = new qmdd._QMDD(4);
+            var s = Q._determineSequence(1, null);
+            assert.equal(s,null);
+        });
     });
 
 });

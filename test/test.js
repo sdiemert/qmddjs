@@ -345,4 +345,55 @@ describe("_QMDD", function(){
         });
     });
 
+    describe("#set", function(){
+
+        var Q = null;
+
+        beforeEach(function(){
+            Q = new qmdd._QMDD(4);
+        });
+
+        afterEach(function(){
+            Q = null;
+        });
+
+        it("should set a value", function(){
+            Q.set(2,2,1);
+            var v = Q.get(2,2);
+            assert.equal(v, 1);
+        });
+
+        it("should set multiple values", function(){
+            Q.set(2,2,1);
+            Q.set(2,2,0.5);
+            Q.set(2,2,0.25);
+            var v = Q.get(2,2);
+            assert.equal(v, 0.25);
+        });
+
+        it("should fail on r to small", function(){
+            assert.equal(Q.set(-1, 2, 1), null);
+        });
+        it("should fail on r to large", function(){
+            assert.equal(Q.set(4, 2, 1), null);
+        });
+        it("should fail on c to small", function(){
+            assert.equal(Q.set(1, -1, 1), null);
+        });
+        it("should fail on c to large", function(){
+            assert.equal(Q.set(1, 4, 1), null);
+        });
+        it("should fail on c NaN", function(){
+            assert.equal(Q.set(1, 2, "foo"), null);
+        });
+        it("should fail on r NaN", function(){
+            assert.equal(Q.set("foo", 2, 1), null);
+        });
+        it("should fail on c NaN", function(){
+            assert.equal(Q.set(1, "foo", 1), null);
+        });
+
+    });
+
+
 });

@@ -193,7 +193,6 @@ _QMDD.prototype._set = function(x,S,M,R){
         // not adjacent to terminal node
         // find out what we are adjacent to
         // get it weight
-
         var A = this._G.getAdjacent(R, s);
         w = A[1];
         a = A[0];
@@ -241,6 +240,19 @@ _QMDD.prototype._get = function(S, M, R){
 };
 
 _QMDD.prototype.set = function(r,c,x){
+
+    if(isNaN(r) || r >= this._size || r < 0){
+        return null;
+    }
+
+    if(isNaN(r) || c >= this._size || c < 0){
+        return null;
+    }
+
+    if(isNaN(x)){
+        return null;
+    }
+
     var S = this._determineSequence(r,c);
     this._set(x,S,[],this._root);
 };
@@ -269,9 +281,7 @@ function Matrix(m){
  * @param x {number} to set the value of M[r][c] = x
  */
 Matrix.prototype.set = function(r,c,x){
-
     this._Q.set(r,c,x);
-
 };
 
 

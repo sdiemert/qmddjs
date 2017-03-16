@@ -41,7 +41,9 @@ describe("_Graph", function(){
             var n1 = G.newNode();
             var n2 = G.newNode();
 
-            G.addEdge(n1, n2, 0, 1);
+            var e = G.addEdge(n1, n2, 0, 1);
+
+            assert.equal(e, 0);
 
             assert.equal(G.nodes.length, 2);
 
@@ -186,4 +188,67 @@ describe("_Graph", function(){
 
     });
 
+    describe("#adjacent", function(){
+
+        it("should return the weight if everything provided", function(){
+            var n1 = G.newNode();
+            var n2 = G.newNode();
+            var e = G.addEdge(n1, n2, 2, 5);
+            var r = G.adjacent(n1,n2,e);
+            assert.equal(r, 5);
+        });
+
+         it("should return [e, w] tuple if no e provided", function(){
+            var n1 = G.newNode();
+            var n2 = G.newNode();
+            var e = G.addEdge(n1, n2, 2, 5);
+            var r = G.adjacent(n1,n2);
+            assert.equal(r[0], 2);
+            assert.equal(r[1], 5);
+        });
+
+         it("should return null if not adjacent", function(){
+             var n1 = G.newNode();
+             var n2 = G.newNode();
+             var n3 = G.newNode();
+             var e = G.addEdge(n1, n2, 2, 5);
+             var r = G.adjacent(n1,n3);
+             assert.equal(r, null);
+         });
+
+         it("should return null if not adjacent of edge e", function(){
+             var n1 = G.newNode();
+             var n2 = G.newNode();
+             var e = G.addEdge(n1, n2, 2, 5);
+             var r = G.adjacent(n1,n2, 3);
+             assert.equal(r, null);
+         });
+    });
+
+});
+
+describe("Matrix", function(){
+
+    describe("#constructor", function(){
+
+        it("should initialize a root and terminal", function(){
+
+            var M = new qmdd.Matrix(2);
+
+            assert.notEqual(M._Q, null);
+            assert.notEqual(M._Q, undefined);
+
+            assert.equal(M._Q._size, 4);
+            assert.equal(M._Q._root, 0);
+            assert.equal(M._Q._term, 1);
+            assert.equal(M._Q._rootMulti, 1);
+
+            // check that the new edge is adjacent to everything.
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,0), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,1), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,2), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,3), 0);
+
+        });
+    });
 });

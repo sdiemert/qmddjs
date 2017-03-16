@@ -97,6 +97,11 @@ _Graph.prototype.adjacent = function(n1, n2, e){
     }
 };
 
+_Graph.prototype.getAdjacent = function(n1, e){
+    // TODO: Error checking and such here...
+    return [this.nodes[n1].A[e].id, this.nodes[n1].W[e]];
+};
+
 /**
  * Makes a QMDD.
  * @param m {number} the size of the matrix the QMDD is representing, must be power of 2.
@@ -114,7 +119,6 @@ function _QMDD(m){
     this._G.addEdge(this._root, this._term, 1, 0);
     this._G.addEdge(this._root, this._term, 2, 0);
     this._G.addEdge(this._root, this._term, 3, 0);
-
 }
 
 /**
@@ -145,8 +149,6 @@ _QMDD.prototype._determineSequence = function(r,c){
 
     const iters = Math.log2(this._size);
 
-    console.log(iters);
-
     var q = null;
 
     for(var i = 0; i < iters; i++){
@@ -169,6 +171,86 @@ _QMDD.prototype._determineSequence = function(r,c){
     return S;
 };
 
+_QMDD.prototype._set = function(x,S,M,R){
+    // R is the root we are working with.
+
+    var s = S[0];
+
+    if(S.length === 1){
+
+        // base case, we have to be at terminal.
+        // compute the weighted w that satisfies our requirements
+        var wp = parseFloat(x) / M.reduce(function(a,b){return a*b;});
+        this._G.addEdge(R,this._term,s,wp);
+        return;
+    }
+
+    S.shift();
+
+    var w = this._G.adjacent(R, this._term, s), a = null;
+
+    if(w === null){
+        // not adjacent to terminal node
+        // find out what we are adjacent to
+        // get it weight
+
+        var A = this._G.getAdjacent(R, s);
+        w = A[1];
+        a = A[0];
+        M.push(w);
+        this._set(x,S, M, a)
+
+    }else{
+        // we are adjacent to terminal node.
+        var m = this._G.newNode();
+        this._G.addEdge(m,this._term, 0, 0);
+        this._G.addEdge(m,this._term, 1, 0);
+        this._G.addEdge(m,this._term, 2, 0);
+        this._G.addEdge(m,this._term, 3, 0);
+        var e = this._G.addEdge(R, m, s, 1);
+        M.push(1);
+        this._set(x,S,M,m);
+    }
+};
+
+_QMDD.prototype._get = function(S, M, R){
+
+    if(S.length === 1){
+        var s = S[0];
+        var A = this._G.getAdjacent(R, s);
+        var w = A[1];
+        M.push(w);
+
+        return M.reduce(function(a,b){return a*b;});
+
+    }else{
+        var s = S[0];
+        S.shift();
+        var A = this._G.getAdjacent(R, s);
+        var w = A[1];
+        var a = A[0];
+        M.push(w);
+
+        if(w === 0){
+            return 0;
+        }else{
+           return this._get(S, M, a);
+        }
+    }
+
+};
+
+_QMDD.prototype.set = function(r,c,x){
+    var S = this._determineSequence(r,c);
+    this._set(x,S,[],this._root);
+};
+
+_QMDD.prototype.get = function(r,c){
+    var S = this._determineSequence(r,c);
+    console.log(S);
+    return this._get(S, [], this._root);
+};
+
 /**
  * Makes a new matrix that is 2^m x 2^m in size.
  * Initalizes everything to zeros.
@@ -188,10 +270,14 @@ function Matrix(m){
  */
 Matrix.prototype.set = function(r,c,x){
 
-    // TODO: implement me
+    this._Q.set(r,c,x);
 
 };
 
+
+Matrix.prototype.get = function(r,c){
+    return this._Q.get(r,c);
+};
 module.exports._Graph = _Graph;
 module.exports._QMDD = _QMDD;
 module.exports.Matrix = Matrix;

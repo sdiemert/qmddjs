@@ -21,4 +21,4 @@ console.log("get(3,3)", M.get(3,3));
 
 console.log("node count:", M._Q._G.nodes.length);
 
-console.log(M._Q._G.nodes);
+console.log(M.asPrettyString());

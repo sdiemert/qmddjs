@@ -206,7 +206,7 @@ _QMDD.prototype._set = function(x,S,M,R){
         this._G.addEdge(m,this._term, 1, 0);
         this._G.addEdge(m,this._term, 2, 0);
         this._G.addEdge(m,this._term, 3, 0);
-        var e = this._G.addEdge(R, m, s, 1);
+        this._G.addEdge(R, m, s, 1);
         M.push(1);
         this._set(x,S,M,m);
     }
@@ -214,22 +214,15 @@ _QMDD.prototype._set = function(x,S,M,R){
 
 _QMDD.prototype._get = function(S, M, R){
 
+    var s = S[0];
+    var A = this._G.getAdjacent(R, s);
+    var w = A[1], a = A[0];
+    M.push(w);
+
     if(S.length === 1){
-        var s = S[0];
-        var A = this._G.getAdjacent(R, s);
-        var w = A[1];
-        M.push(w);
-
         return M.reduce(function(a,b){return a*b;});
-
     }else{
-        var s = S[0];
         S.shift();
-        var A = this._G.getAdjacent(R, s);
-        var w = A[1];
-        var a = A[0];
-        M.push(w);
-
         if(w === 0){
             return 0;
         }else{
@@ -259,7 +252,6 @@ _QMDD.prototype.set = function(r,c,x){
 
 _QMDD.prototype.get = function(r,c){
     var S = this._determineSequence(r,c);
-    console.log(S);
     return this._get(S, [], this._root);
 };
 
@@ -285,8 +277,72 @@ Matrix.prototype.set = function(r,c,x){
 };
 
 
+/**
+ * Gets the value at Matrix[r][c]
+ *
+ * @param r {number} row (index from 0)
+ * @param c {number} column (index from 0)
+ */
 Matrix.prototype.get = function(r,c){
     return this._Q.get(r,c);
+};
+
+/**
+ * Returns a 2D array of matrix.
+ *
+ * NOTE: doing this for large matrices may result in high memory usage.
+ *       as it is required to populate all of the zero values.
+ *
+ * @return {Array} The matrix in array form
+ */
+Matrix.prototype.asArray = function(){
+
+    // This is a dumb approach, just enumerates all n^2 options
+    // with get, we can probably do something better...
+
+    var R = [];
+
+    for(var i = 0; i < this._Q._size; i++){
+        R.push([]);
+        for(var j = 0; j < this._Q._size; j++){
+            R[i].push(this.get(i,j));
+        }
+    }
+
+    return R;
+};
+
+/**
+ * Returns a pretty string version of the matrix,
+ * the string is padded with new line chars on either side.
+ *
+ * NOTE: doing this for large matries may result in high memory
+ *       usage as it is required to enumerate all zero values.
+ *
+ * @param p {number} precision to print to, defaults to 2
+ *
+ * @return {string} pretty formatted matrix string.
+ */
+Matrix.prototype.asPrettyString = function(p){
+
+    // This is a dumb approach, just enumerates all n^2 options
+    // with get, we can probably do something better...
+    // See approach is Matrix.prototype.asArray()
+
+    p = p || 2;
+
+    var R = "\n";
+
+    for(var i = 0; i < this._Q._size; i++){
+        for(var j = 0; j < this._Q._size; j++){
+            R += this.get(i,j).toFixed(p) +" ";
+        }
+        R += "\n";
+    }
+
+    return R;
+
+
 };
 module.exports._Graph = _Graph;
 module.exports._QMDD = _QMDD;

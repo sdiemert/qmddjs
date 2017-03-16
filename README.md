@@ -1,5 +1,7 @@
 # QMDD Package
 
+![](https://travis-ci.org/sdiemert/qmddjs.svg?branch=master)
+
 A JavaScript library for Quantum Matrix Decision Diagrams.
 
 Useful for sparse matrix operations.

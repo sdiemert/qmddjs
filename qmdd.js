@@ -344,6 +344,7 @@ Matrix.prototype.asPrettyString = function(p){
 
 
 };
+
 module.exports._Graph = _Graph;
 module.exports._QMDD = _QMDD;
 module.exports.Matrix = Matrix;

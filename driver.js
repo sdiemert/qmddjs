@@ -7,8 +7,6 @@ var Matrix = require("./qmdd").Matrix;
 
 var M = new Matrix(2);
 
-//console.log(M);
-
 M.set(0,0,1);
 M.set(1,1,0.75);
 M.set(2,2,0.50);

@@ -8,6 +8,8 @@ function _Node(id){
     this.A = [null,null,null,null];
     // Weights for adjacent nodes (in order)
     this.W = [null,null,null,null];
+
+    this.id = id;
 }
 
 _Node.prototype.addEdge = function(tar, e, w){
@@ -41,7 +43,7 @@ _Graph.prototype.addEdge = function(n1, n2, e, w){
     this.nodes[n1].addEdge(this.nodes[n2], e, w);
 };
 
-function QMDD(){
+function _QMDD(){
     this.G = new _Graph();
     this.G.newNode();
     this.rootMulti = 1;
@@ -51,4 +53,10 @@ function QMDD(){
 
 // ---------------  Driver --------------
 
-var Q = new QMDD();
+var Q = new _QMDD();
+
+
+// ---------------- EXPORTS -------------
+
+module.exports._Graph = _Graph;
+module.exports._QMDD = _QMDD;

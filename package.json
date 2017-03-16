@@ -1,0 +1,36 @@
+{
+  "name": "qmddjs",
+  "version": "1.0.0",
+  "description": "QMDD Package for JavaScript",
+  "main": "qmdd.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sdiemert/qmddjs.git"
+  },
+  "keywords": [
+    "QMDD",
+    "Quantum",
+    "Computing",
+    "Decision",
+    "Diagrams",
+    "Matrices",
+    "Matrix",
+    "Sparse",
+    "Matrix"
+  ],
+  "author": "sdiemert",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sdiemert/qmddjs/issues"
+  },
+  "homepage": "https://github.com/sdiemert/qmddjs#readme",
+  "dependencies": {
+    "mocha": "^3.2.0"
+  }
+}

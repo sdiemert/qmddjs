@@ -3,6 +3,8 @@
  * Created by sdiemert on 2017-03-15.
  */
 
+var util = require("util");
+
 function _Node(id){
     // Adjacent nodes (in order)
     this.A = [null,null,null,null];
@@ -182,6 +184,7 @@ _QMDD.prototype._set = function(x,S,M,R){
 
         // base case, we have to be at terminal.
         // compute the weighted w that satisfies our requirements
+
         var wp = parseFloat(x) / M.reduce(function(a,b){return a*b;});
         this._G.addEdge(R,this._term,s,wp);
         return;
@@ -249,7 +252,7 @@ _QMDD.prototype.set = function(r,c,x){
     }
 
     var S = this._determineSequence(r,c);
-    this._set(x,S,[],this._root);
+    this._set(x,S,[1],this._root);
 };
 
 /**
@@ -260,21 +263,6 @@ _QMDD.prototype.set = function(r,c,x){
 _QMDD.prototype.get = function(r,c){
     var S = this._determineSequence(r,c);
     return this._get(S, [], this._root);
-};
-
-/**
- * Multiples this QMDD matrix with the parameter matrix.
- * Requires that this QMDD have the same size as Q1.
- *
- * @param Q1 {_QMDD}
- *
- * @return {_QMDD} A new _QMDD object that is the product.
- */
-_QMDD.prototype.multiply = function(Q1){
-
-    // Start with edges e0 (this), e1 (Q1)
-    // If e1 -> Q1.terminal swap
-
 };
 
 /**
@@ -323,7 +311,7 @@ _QMDD.prototype._add = function(e, q0, Q0, q1, Q1, q2, Q2){
         for(var i = 0; i < 4; i++){
 
             if(qp0.W[i] === 0 && qp1.W[i] === 0){
-                continue;
+                qp2.W[i] = 0;
             }else if(qp0.W[i] !== 0 && qp1.W[i] === 0){
                 // copy the sub-QMDD starting at qp0 as root.
                 Q0.copy(Q2, qp2, qp0, i);
@@ -331,22 +319,28 @@ _QMDD.prototype._add = function(e, q0, Q0, q1, Q1, q2, Q2){
                 // copy the sub-QMDD starting at qp1 as root.
                 Q1.copy(Q2, qp2, qp1, i);
             }else{
-                Q2._G.addEdge(qp2_id, Q2._G._term, i, 1);
+                // add edge from our new node to the terminal node with weight 1.
+                //
+                Q2._G.addEdge(qp2.id, Q2._term, i, 0);
                 this._add(i, qp0, Q0, qp1, Q1, qp2, Q2);
             }
         }
     }
 };
 
-_QMDD.prototype.copy = function(Q, qt, qs, e){
+_QMDD.prototype.copy = function(Q, qt, qs, e, C){
 
     // copy everything in this QMDD to Q starting at qs in this and qt in Q
     // assume that qt(e) is pointing at terminal with weight 0.
 
+    // C is a constant to multiply value by:
+
+    if(C === null || C === undefined) C = 1;
+
     // if qs on edge e is pointing at the terminal.
     if(qs.A[e].id === this._term){
         // assign the weight to qt on edge e
-        qt.W[e] = qs.W[e];
+        qt.W[e] = qs.W[e] * C;
         qt.A[e] = Q._G.nodes[Q._term]; // assign terminal, just in case.
     }else{
         // qs on edge e is not pointing at a terminal node.
@@ -361,7 +355,7 @@ _QMDD.prototype.copy = function(Q, qt, qs, e){
         Q._G.addEdge(qt.id, nn_id, e, qs.W[e]);
 
         for(var i = 0; i < 4; i++){
-            this.copy(Q, nn, qs.A[e], i);
+            this.copy(Q, nn, qs.A[e], i, C);
         }
     }
 };
@@ -370,14 +364,145 @@ _QMDD.prototype.copy = function(Q, qt, qs, e){
  * Adds this QMDD matrix with the parameter matrix.
  * Requires that this QMDD have the same size as Q1.
  *
- * @param Q1 {_QMDD}
  * @param Q2 {_QMDD}
  *
  * @return {_QMDD}
  */
 _QMDD.prototype.add = function(Q1, Q2){
 
-    this._add(null, this._G.nodes[this._root], this, Q1._G.nodes[Q1._root], Q1, Q2._G.nodes[Q2._root], Q2);
+    this._add(null, this._G.nodes[this._root], this,
+        Q1._G.nodes[Q1._root], Q1,
+        Q2._G.nodes[Q2._root], Q2);
+    return Q2;
+};
+
+_QMDD.prototype.printMatrix = function(){
+  var M = new Matrix(Math.log2(this._size));
+  M._Q = this;
+  return M.asPrettyString();
+};
+
+_QMDD.prototype._multiply = function(q0, Q0, q1, Q1, q2, Q2){
+
+    // A * B =
+    //
+    // | A0B0+A1B2  A0B1+A1B3 |
+    // | A2B0+A3B2  A2B1+A3B3 |
+    //
+
+    var a0,a1,b0,b1, tar;
+
+    for(var i = 0; i < 2; i++){
+        for(var j = 0; j < 2; j++) {
+
+            // The operation is:
+            //  A[a0]*B[b0] + A[a1]*B[b1]
+
+            a0 = 2*i;
+            b0 = j;
+            a1 = 2*i + 1;
+            b1 = 2+j;
+
+            tar = 2*i + j;
+
+            if( q0.A[a0].id === Q0._term &&
+                q1.A[b0].id === Q1._term &&
+                q0.A[a1].id === Q0._term &&
+                q1.A[b1].id === Q1._term
+            ){
+
+                q2.W[tar] = q0.W[a0]*q1.W[b0] + q0.W[a1]*q1.W[b1];
+
+            }else{
+
+                // SOme nasty code in here.... no time to refactor....
+                // TODO: fix this at some point.
+
+                if((q0.W[a0] === 0 || q1.W[b0] === 0) && q0.W[a1] !== 0 && q1.W[b1] !== 0){
+
+                    var qp2_id = Q2._G.newNode(); // id of new node
+                    var qp2    = Q2._G.nodes[qp2_id]; // reference to _Node object
+
+                    //initalize the new node to all zeros
+                    Q2._G.addEdge(qp2_id, Q2._term, 0, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 1, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 2, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 3, 0);
+
+                    // hook up the new node to its parent.
+                    Q2._G.addEdge(q2.id, qp2_id, tar, 1);
+                    // first term of multiplication express is all zero.
+                    this._multiply(q0.A[a1], Q0, q1.A[b1], Q1, qp2, Q2);
+
+                }else if((q0.W[a1] === 0 || q1.W[b1] === 0) && q0.W[a0] !== 0 && q1.W[b0] !== 0) {
+                    var qp2_id = Q2._G.newNode(); // id of new node
+                    var qp2    = Q2._G.nodes[qp2_id]; // reference to _Node object
+
+                    //initalize the new node to all zeros
+                    Q2._G.addEdge(qp2_id, Q2._term, 0, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 1, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 2, 0);
+                    Q2._G.addEdge(qp2_id, Q2._term, 3, 0);
+
+                    // hook up the new node to its parent.
+                    Q2._G.addEdge(q2.id, qp2_id, tar, 1);
+                    // second term of multiplication express is all zero.
+                    this._multiply(q0.A[a0], Q0, q1.A[b0], Q1, qp2, Q2);
+
+                }else{
+
+                    // place to put the product of multiplication of each term
+                    var Q2a = new _QMDD(Q2._size);
+                    var Q2b = new _QMDD(Q2._size);
+
+                    if(q0.A[a0].id === Q0._term && q1.A[b0].id !== Q1._term){
+                        Q1.copy(Q2a, Q2a._G.nodes[Q2a._root], q1, 0, q0.W[a0]);
+                        Q1.copy(Q2a, Q2a._G.nodes[Q2a._root], q1, 1, q0.W[a0]);
+                        Q1.copy(Q2a, Q2a._G.nodes[Q2a._root], q1, 2, q0.W[a0]);
+                        Q1.copy(Q2a, Q2a._G.nodes[Q2a._root], q1, 3, q0.W[a0]);
+                    }else if(q0.A[a0].id !== Q0._term && q1.A[b0].id === Q1._term) {
+                        Q0.copy(Q2a, Q2a._G.nodes[Q2a._root], q0, 0, q1.W[b0]);
+                        Q0.copy(Q2a, Q2a._G.nodes[Q2a._root], q0, 1, q1.W[b0]);
+                        Q0.copy(Q2a, Q2a._G.nodes[Q2a._root], q0, 2, q1.W[b0]);
+                        Q0.copy(Q2a, Q2a._G.nodes[Q2a._root], q0, 3, q1.W[b0]);
+                    }else{
+                        this._multiply(q0.A[a0], Q0, q1.A[b0], Q1, Q2a._G.nodes[Q2a._root], Q2a);
+                    }
+
+                    if(q0.A[a1].id === Q0._term && q1.A[b1].id !== Q1._term){
+                        Q1.copy(Q2b, Q2b._G.nodes[Q2b._root], q1, 0, q0.W[a1]);
+                        Q1.copy(Q2b, Q2b._G.nodes[Q2b._root], q1, 1, q0.W[a1]);
+                        Q1.copy(Q2b, Q2b._G.nodes[Q2b._root], q1, 2, q0.W[a1]);
+                        Q1.copy(Q2b, Q2b._G.nodes[Q2b._root], q1, 3, q0.W[a1]);
+                    }else if(q0.A[a1].id !== Q0._term && q1.A[b1].id === Q1._term) {
+                        Q0.copy(Q2b, Q2b._G.nodes[Q2b._root], q0, 0, q1.W[b1]);
+                        Q0.copy(Q2b, Q2b._G.nodes[Q2b._root], q0, 1, q1.W[b1]);
+                        Q0.copy(Q2b, Q2b._G.nodes[Q2b._root], q0, 2, q1.W[b1]);
+                        Q0.copy(Q2b, Q2b._G.nodes[Q2b._root], q0, 3, q1.W[b1]);
+                    }else{
+                        this._multiply(q0.A[a1], Q0, q1.A[b1], Q1, Q2b._G.nodes[Q2b._root], Q2b);
+                    }
+
+                    this._add(tar, Q2a._G.nodes[Q2a._root], Q2a,
+                        Q2b._G.nodes[Q2b._root], Q2b,
+                        q2, Q2);
+
+                }
+            }
+        }
+    }
+};
+
+/**
+ * Multiple this QMDD with Q1 and put the result in Q2.
+ *
+ * @param Q1
+ * @param Q2
+ */
+_QMDD.prototype.multiply = function(Q1, Q2){
+    this._multiply(this._G.nodes[this._root], this,
+        Q1._G.nodes[Q1._root], Q1,
+        Q2._G.nodes[Q2._root], Q2);
     return Q2;
 };
 
@@ -405,8 +530,7 @@ Matrix.prototype.set = function(r,c,x){
 
 
 /**
- * Gets the value at Matrix[r][c]
- *
+ * Gets the value at Matrix[r][c] *
  * @param r {number} row (index from 0)
  * @param c {number} column (index from 0)
  */
@@ -437,6 +561,20 @@ Matrix.prototype.asArray = function(){
     }
 
     return R;
+};
+
+Matrix.prototype.fromArray = function(A){
+
+    var s = Math.pow(2, this._size);
+
+    // TODO: input checks on dimension of A.
+
+    for(var i = 0; i < s; i++){
+       for(var j = 0; j < s; j++){
+           this.set(i,j,A[i][j]);
+       }
+    }
+
 };
 
 /**
@@ -484,6 +622,11 @@ Matrix.prototype.add = function(M1){
     return M2;
 };
 
+/**
+ * Creates a copy of this matrix - returns a reference to the new Matrix.
+ *
+ * @returns {Matrix}
+ */
 Matrix.prototype.copy = function(){
 
     // returns a copy of this matrix
@@ -498,6 +641,15 @@ Matrix.prototype.copy = function(){
     this._Q.copy(M._Q, M._Q._G.nodes[M._Q._root], this._Q._G.nodes[this._Q._root], 3);
 
     return M;
+};
+
+Matrix.prototype.multiply = function(M1){
+
+  var M2 = new Matrix(this._size);
+  this._Q.multiply(M1._Q, M2._Q);
+
+  return M2;
+
 };
 
 module.exports._Graph = _Graph;

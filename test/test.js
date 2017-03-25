@@ -5,6 +5,10 @@
 
 var assert = require("assert");
 var qmdd = require("../qmdd");
+var describe = require("mocha").describe;
+var it = require("mocha").it;
+var beforeEach = require("mocha").beforeEach;
+var afterEach = require("mocha").afterEach;
 
 describe("_Graph", function(){
 
@@ -201,7 +205,7 @@ describe("_Graph", function(){
          it("should return [e, w] tuple if no e provided", function(){
             var n1 = G.newNode();
             var n2 = G.newNode();
-            var e = G.addEdge(n1, n2, 2, 5);
+            G.addEdge(n1, n2, 2, 5);
             var r = G.adjacent(n1,n2);
             assert.equal(r[0], 2);
             assert.equal(r[1], 5);
@@ -211,7 +215,7 @@ describe("_Graph", function(){
              var n1 = G.newNode();
              var n2 = G.newNode();
              var n3 = G.newNode();
-             var e = G.addEdge(n1, n2, 2, 5);
+             G.addEdge(n1, n2, 2, 5);
              var r = G.adjacent(n1,n3);
              assert.equal(r, null);
          });
@@ -219,40 +223,13 @@ describe("_Graph", function(){
          it("should return null if not adjacent of edge e", function(){
              var n1 = G.newNode();
              var n2 = G.newNode();
-             var e = G.addEdge(n1, n2, 2, 5);
+             G.addEdge(n1, n2, 2, 5);
              var r = G.adjacent(n1,n2, 3);
              assert.equal(r, null);
          });
     });
 
 });
-
-describe("Matrix", function(){
-
-    describe("#constructor", function(){
-
-        it("should initialize a root and terminal", function(){
-
-            var M = new qmdd.Matrix(2);
-
-            assert.notEqual(M._Q, null);
-            assert.notEqual(M._Q, undefined);
-
-            assert.equal(M._Q._size, 4);
-            assert.equal(M._Q._root, 0);
-            assert.equal(M._Q._term, 1);
-            assert.equal(M._Q._rootMulti, 1);
-
-            // check that the new edge is adjacent to everything.
-            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,0), 0);
-            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,1), 0);
-            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,2), 0);
-            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,3), 0);
-
-        });
-    });
-});
-
 
 describe("_QMDD", function() {
 
@@ -399,6 +376,47 @@ describe("_QMDD", function() {
 
 describe("Matrix", function(){
 
+    describe("#constructor", function(){
+
+        it("should initialize a root and terminal", function(){
+
+            var M = new qmdd.Matrix(2);
+
+            assert.notEqual(M._Q, null);
+            assert.notEqual(M._Q, undefined);
+
+            assert.equal(M._Q._size, 4);
+            assert.equal(M._Q._root, 0);
+            assert.equal(M._Q._term, 1);
+            assert.equal(M._Q._rootMulti, 1);
+
+            // check that the new edge is adjacent to everything.
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,0), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,1), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,2), 0);
+            assert.equal(M._Q._G.adjacent(M._Q._root,M._Q._term,3), 0);
+
+        });
+    });
+
+    describe("#fromArray", function(){
+
+        it("should make a Matrix from an array", function(){
+            var M = new qmdd.Matrix(1);
+            M.fromArray([[1,2], [3,4]]);
+            assert.deepEqual([[1,2], [3,4]], M.asArray());
+
+        });
+
+        it("should overwrite existing", function(){
+            var M = new qmdd.Matrix(2);
+            M.set(0,0,5);
+            M.fromArray([[1,2,3,10],[4,5,6,11],[7,8,9,12], [13,14,15,16]]);
+            assert.deepEqual([[1,2,3, 10], [4,5,6, 11], [7,8,9, 12], [13,14,15,16]], M.asArray());
+
+        });
+    });
+
     describe("#add", function(){
 
         var M1, M2, M3;
@@ -459,6 +477,16 @@ describe("Matrix", function(){
             assert.deepEqual(M4.asArray(), [[3,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
         });
 
+         it("should add to full quadrant", function(){
+            M1.set(0,0,1);
+            M1.set(0,1,2);
+            M1.set(1,0,3);
+            M1.set(1,1,4);
+            M2.set(1,1,1);
+            M3 = M1.add(M2);
+            assert.deepEqual(M3.asArray(), [[1,2,0,0],[3,5,0,0],[0,0,0,0],[0,0,0,0]]);
+        });
+
     });
 
     describe("#copy", function(){
@@ -490,6 +518,68 @@ describe("Matrix", function(){
             M2 = M1.copy();
             assert.deepEqual(M2.asArray(), [[10,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]]);
         });
+    });
+
+    describe("#multiply", function(){
+
+        var M1, M2, M3;
+
+        beforeEach(function(){});
+
+        afterEach(function(){
+            M1 = null;
+            M2 = null;
+            M3 = null;
+        });
+
+        it("should multiple matrices with QMDD of depth 1 - identity", function(){
+            var M1 = new qmdd.Matrix(1);
+            var M2 = new qmdd.Matrix(1);
+            M1.set(0,0,1);
+            M1.set(1,1,1);
+            M2.set(0,0,1);
+            M2.set(1,1,1);
+            var M3 = M1.multiply(M2);
+            assert.deepEqual(M3.asArray(), [[1, 0], [0,1]]);
+            assert.equal(M3._size, 1);
+        });
+
+         it("should multiple matrices with QMDD of depth 1 - non identity", function(){
+            var M1 = new qmdd.Matrix(1);
+            var M2 = new qmdd.Matrix(1);
+            M1.set(0,0,1);
+            M1.set(0,1,2);
+            M1.set(1,0,3);
+            M1.set(1,1,4);
+            M2.set(0,0,5);
+            M2.set(0,1,6);
+            M2.set(1,0,7);
+            M2.set(1,1,8);
+            var M3 = M1.multiply(M2);
+            assert.deepEqual(M3.asArray(), [[19, 22], [43,50]]);
+            assert.equal(M3._size, 1);
+        });
+
+        it("should multiply matrices with depth greater than 1", function(){
+            var M1 = new qmdd.Matrix(2);
+            var M2 = new qmdd.Matrix(2);
+
+            M1.set(0,0, 1);
+            M1.set(1,1, 1);
+            M1.set(2,2, 1);
+            M1.set(3,3, 1);
+
+            M2.set(0,0, 1);
+            M2.set(1,1, 1);
+            M2.set(2,2, 1);
+            M2.set(3,3, 1);
+
+            var M3 = M1.multiply(M2);
+
+            assert.deepEqual([[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]], M3.asArray());
+
+        });
+
     });
 
 });

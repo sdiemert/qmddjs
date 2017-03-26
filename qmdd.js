@@ -3,6 +3,8 @@
  * Created by sdiemert on 2017-03-15.
  */
 
+var math = require("mathjs");
+
 var util = require("util");
 
 function _Node(id){
@@ -191,8 +193,8 @@ _QMDD.prototype._set = function(x,S,M,R){
         // base case, we have to be at terminal.
         // compute the weighted w that satisfies our requirements
 
-        var wp = parseFloat(x) / M.reduce(function(a,b){return a*b;});
-        this._G.addEdge(R,this._term,s,wp);
+        //var wp = parseFloat(x) / M.reduce(function(a,b){return a*b;});
+        this._G.addEdge(R,this._term,s,math.complex(x));
         return;
     }
 
@@ -257,10 +259,6 @@ _QMDD.prototype.set = function(r,c,x){
         return null;
     }
 
-    if(isNaN(x)){
-        return null;
-    }
-
     var S = this._determineSequence(r,c);
     this._set(x,S,[1],this._root);
 };
@@ -301,7 +299,7 @@ _QMDD.prototype._add = function(e, q0, Q0, q1, Q1, q2, Q2){
     }
 
     if(qp0.id === Q0._term && qp1.id === Q1._term){
-        q2.W[e] = q0.W[e] + q1.W[e];
+        q2.W[e] = math.add(q0.W[e],q1.W[e]);
     }else{
 
         if(qp2 === null) {
@@ -421,7 +419,7 @@ _QMDD.prototype._multiply = function(q0, Q0, q1, Q1, q2, Q2){
                 q1.A[b1].id === Q1._term
             ){
 
-                q2.W[tar] = q0.W[a0]*q1.W[b0] + q0.W[a1]*q1.W[b1];
+                q2.W[tar] = math.add(math.multiply(q0.W[a0],q1.W[b0]), math.multiply(q0.W[a1],q1.W[b1]));
 
             }else{
 
@@ -445,7 +443,7 @@ _QMDD.prototype._multiply = function(q0, Q0, q1, Q1, q2, Q2){
                     // first term of multiplication express is all zero.
                     this._multiply(q0.A[a1], Q0, q1.A[b1], Q1, qp2, Q2);
 
-                }else if((q0.W[a1] === 0 || q1.W[b1] === 0) && q0.W[a0] !== 0 && q1.W[b0] !== 0) {
+                }else if((q0.W[a1] == 0 || q1.W[b1] == 0) && q0.W[a0] != 0 && q1.W[b0] != 0) {
                     var qp2_id = Q2._G.newNode(); // id of new node
                     var qp2    = Q2._G.nodes[qp2_id]; // reference to _Node object
 
@@ -608,10 +606,13 @@ Matrix.prototype.asPrettyString = function(p){
     p = p || 2;
 
     var R = "\n";
+    var x = null;
 
     for(var i = 0; i < this._Q._size; i++){
         for(var j = 0; j < this._Q._size; j++){
-            R += this.get(i,j).toFixed(p) +" ";
+            //R += this.get(i,j).toFixed(p) +" ";
+            x = math.complex(this.get(i,j));
+            R +=  parseFloat(x.re) +"+i"+ parseFloat(x.im) +" ";
         }
         R += "\n";
     }

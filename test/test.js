@@ -3,6 +3,9 @@
  * Created by sdiemert on 2017-03-15.
  */
 
+
+var math = require("mathjs");
+
 var assert = require("assert");
 var qmdd = require("../qmdd");
 var describe = require("mocha").describe;
@@ -360,9 +363,6 @@ describe("_QMDD", function() {
         it("should fail on c to large", function () {
             assert.equal(Q.set(1, 4, 1), null);
         });
-        it("should fail on c NaN", function () {
-            assert.equal(Q.set(1, 2, "foo"), null);
-        });
         it("should fail on r NaN", function () {
             assert.equal(Q.set("foo", 2, 1), null);
         });
@@ -375,6 +375,26 @@ describe("_QMDD", function() {
 });
 
 describe("Matrix", function(){
+
+    describe("#complex", function(){
+        it('can handle complex numbers', function(){
+            var M1 = new qmdd.Matrix(1);
+            M1.set(0,0, math.complex(1,1));
+            assert.deepEqual(math.complex(1,1), M1.get(0,0));
+        });
+
+        it("should handle string input for class input", function(){
+            var M1 = new qmdd.Matrix(1);
+            M1.set(0,0, '1+i2');
+            assert.deepEqual(math.complex(1,2), M1.get(0,0));
+        });
+
+        it("should cast non-complex to complex numbers", function(){
+            var M1 = new qmdd.Matrix(1);
+            M1.set(0,0, 2);
+            assert.deepEqual(math.complex(2,0), M1.get(0,0));
+        });
+    });
 
     describe("#constructor", function(){
 
@@ -403,8 +423,9 @@ describe("Matrix", function(){
 
         it("should make a Matrix from an array", function(){
             var M = new qmdd.Matrix(1);
-            M.fromArray([[1,2], [3,4]]);
-            assert.deepEqual([[1,2], [3,4]], M.asArray());
+            var A = [[math.complex(1),math.complex(2)], [math.complex(3),math.complex(4)]];
+            M.fromArray(A);
+            assert.deepEqual(A, M.asArray());
 
         });
 
@@ -540,7 +561,9 @@ describe("Matrix", function(){
             M2.set(0,0,1);
             M2.set(1,1,1);
             var M3 = M1.multiply(M2);
-            assert.deepEqual(M3.asArray(), [[1, 0], [0,1]]);
+            assert.deepEqual(M3.asArray(),
+                [[math.complex(1), math.complex(0)],
+                    [math.complex(0),math.complex(1)]]);
             assert.equal(M3._size, 1);
         });
 
@@ -556,7 +579,9 @@ describe("Matrix", function(){
             M2.set(1,0,7);
             M2.set(1,1,8);
             var M3 = M1.multiply(M2);
-            assert.deepEqual(M3.asArray(), [[19, 22], [43,50]]);
+            assert.deepEqual(M3.asArray(),
+                [[math.complex(19), math.complex(22)],
+                    [math.complex(43),math.complex(50)]]);
             assert.equal(M3._size, 1);
         });
 
@@ -609,9 +634,25 @@ describe("Matrix", function(){
             var A = [[1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]];
             M1.fromArray(A);
             var M3 = M1.multiply(M1);
-            assert.deepEqual([[4,4,4,4],[4,4,4,4],[4,4,4,4],[4,4,4,4]], M3.asArray());
+            assert.deepEqual(
+                math.complex([[4,4,4,4],[4,4,4,4],[4,4,4,4],[4,4,4,4]]),
+                M3.asArray());
         });
 
-    });
+        it("should correctly multiply complex matricies", function(){
 
+           var M1 = new qmdd.Matrix(1);
+           var A = [[math.complex(1,1), math.complex(1,1)], [math.complex(1,1), math.complex(1,1)]];
+
+           M1.fromArray(A);
+
+           var M3 = M1.multiply(M1);
+
+           assert.deepEqual(
+               [[math.complex(0,4), math.complex(0,4)], [math.complex(0,4), math.complex(0,4)]],
+               M3.asArray()
+           )
+
+        });
+    });
 });

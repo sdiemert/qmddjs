@@ -101,7 +101,13 @@ _Graph.prototype.adjacent = function(n1, n2, e){
 
 _Graph.prototype.getAdjacent = function(n1, e){
     // TODO: Error checking and such here...
-    return [this.nodes[n1].A[e].id, this.nodes[n1].W[e]];
+
+    if(this.nodes[n1].A[e]){
+        return [this.nodes[n1].A[e].id, this.nodes[n1].W[e]];
+    }else{
+        return null;
+    }
+
 };
 
 
@@ -219,22 +225,26 @@ _QMDD.prototype._set = function(x,S,M,R){
 
 _QMDD.prototype._get = function(S, M, R){
 
-    var s = S[0];
-    var A = this._G.getAdjacent(R, s);
-    var w = A[1], a = A[0];
-    M.push(w);
+    if(R === this._term){
 
-    if(S.length === 1){
         return M.reduce(function(a,b){return a*b;});
+
     }else{
+
+        var s = S[0];
+        var A = this._G.getAdjacent(R, s);
+        var w = A[1], a = A[0];
+
+        M.push(w);
+
         S.shift();
         if(w === 0){
             return 0;
         }else{
            return this._get(S, M, a);
         }
-    }
 
+    }
 };
 
 _QMDD.prototype.set = function(r,c,x){
@@ -416,6 +426,7 @@ _QMDD.prototype._multiply = function(q0, Q0, q1, Q1, q2, Q2){
             }else{
 
                 // SOme nasty code in here.... no time to refactor....
+                // it works, but has a bunch of clones and complex logic...
                 // TODO: fix this at some point.
 
                 if((q0.W[a0] === 0 || q1.W[b0] === 0) && q0.W[a1] !== 0 && q1.W[b1] !== 0){

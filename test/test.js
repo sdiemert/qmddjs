@@ -560,7 +560,7 @@ describe("Matrix", function(){
             assert.equal(M3._size, 1);
         });
 
-        it("should multiply matrices with depth greater than 1", function(){
+        it("should multiply matrices with depth greater than 1 - identity", function(){
             var M1 = new qmdd.Matrix(2);
             var M2 = new qmdd.Matrix(2);
 
@@ -578,6 +578,38 @@ describe("Matrix", function(){
 
             assert.deepEqual([[1,0,0,0], [0,1,0,0], [0,0,1,0], [0,0,0,1]], M3.asArray());
 
+        });
+
+        it("should multiply matrices with depth greater than 1 - identity", function(){
+            var M1 = new qmdd.Matrix(2);
+            var M2 = new qmdd.Matrix(2);
+            var A = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]];
+            M1.fromArray(A);
+            M2.set(0,0, 1);
+            M2.set(1,1, 1);
+            M2.set(2,2, 1);
+            M2.set(3,3, 1);
+            var M3 = M1.multiply(M2);
+            assert.deepEqual(A, M3.asArray());
+
+        });
+
+        it("should multiple my completely zero matrix", function(){
+            var M1 = new qmdd.Matrix(2);
+            var M2 = new qmdd.Matrix(2);
+            var A = [[1,2,3,4], [5,6,7,8], [9,10,11,12], [13,14,15,16]];
+            M1.fromArray(A);
+            var M3 = M1.multiply(M2);
+            assert.deepEqual([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]], M3.asArray());
+
+        });
+
+        it("should multiply my self", function(){
+            var M1 = new qmdd.Matrix(2);
+            var A = [[1,1,1,1], [1,1,1,1], [1,1,1,1], [1,1,1,1]];
+            M1.fromArray(A);
+            var M3 = M1.multiply(M1);
+            assert.deepEqual([[4,4,4,4],[4,4,4,4],[4,4,4,4],[4,4,4,4]], M3.asArray());
         });
 
     });

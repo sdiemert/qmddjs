@@ -655,4 +655,56 @@ describe("Matrix", function(){
 
         });
     });
+
+});
+
+describe("Vector", function(){
+
+    describe("#get and #set", function(){
+
+        it("should get and set the vector", function(){
+            var V = new qmdd.Vector(1);
+            V.set(0, math.complex(1,1));
+            assert.deepEqual(V.get(0), math.complex(1,1));
+        });
+
+         it("should set the vector", function(){
+            var V = new qmdd.Vector(1);
+            V.set(0, math.complex(1,1));
+            V.set(1, math.complex(2,2));
+            assert.deepEqual(
+                [math.complex(1,1), math.complex(2,2)],
+                V.asArray()
+            );
+        });
+
+         it("should print as a string", function(){
+             var V = new qmdd.Vector(2);
+             var S = V.asPrettyString();
+             assert.equal(S, "0+i0\n0+i0\n0+i0\n0+i0\n");
+         });
+
+
+    });
+
+    describe("multiply", function(){
+
+        it("should multiply by identity", function(){
+
+            var V = new qmdd.Vector(1);
+            V.set(0,2);
+            V.set(1,3);
+
+            var M = new qmdd.Matrix(1);
+            M.set(0,0,1);
+            M.set(1,1,1);
+
+            var V2 = V.multiply(M);
+
+            assert.deepEqual(V2.asArray(), [math.complex(2,0), math.complex(3,0)]);
+
+        });
+
+    });
+
 });

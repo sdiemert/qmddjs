@@ -664,6 +664,50 @@ Matrix.prototype.multiply = function(M1){
 
 };
 
+function Vector(m){
+    this._Q = new _QMDD(Math.pow(2, m));
+    this._size = m;
+}
+
+Vector.prototype.set = function(i, x){
+    this._Q.set(i, 0, x);
+};
+
+Vector.prototype.get = function(i, x){
+    return this._Q.get(i, 0);
+};
+
+Vector.prototype.asArray = function(){
+
+    var R = [];
+    for(var i = 0; i < this._Q._size; i++){
+        R.push(this.get(i));
+    }
+
+    return R;
+};
+
+Vector.prototype.multiply = function(M){
+
+    if(this._size !== M._size) return null;
+
+    var V = new Vector(this._size);
+    M._Q.multiply(this._Q, V._Q);
+    return V;
+};
+
+Vector.prototype.asPrettyString = function(){
+    var R = "";
+    var x = null;
+    for(var i = 0; i < this._Q._size; i++){
+        x = math.complex(this.get(i));
+        R +=  parseFloat(x.re) +"+i"+ parseFloat(x.im) +"\n";
+    }
+
+    return R;
+};
+
 module.exports._Graph = _Graph;
 module.exports._QMDD = _QMDD;
 module.exports.Matrix = Matrix;
+module.exports.Vector = Vector;

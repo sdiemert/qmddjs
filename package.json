@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/sdiemert/qmddjs#readme",
   "dependencies": {
+    "mathjs": "^3.10.0",
     "mocha": "^3.2.0"
   }
 }
